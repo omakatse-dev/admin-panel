@@ -22,22 +22,35 @@ export const approveReview = async (
   });
 };
 
-export const createSubscription = async () => {
+export const createSubscription = async (
+  size: string,
+  nextBillingDate: string,
+  address: string,
+  name: string,
+  duration: string,
+  nextRenewalDate: string,
+  date: string,
+  boxItems: string,
+  petDetails: string,
+  email: string
+) => {
   try {
+
+    console.log(boxItems)
     const res = await fetch(subEndpoint, {
       method: "POST",
       body: JSON.stringify({
-        size: "Large",
-        nextBillingDate: "date here",
-        address: "277 sbr",
-        name: "matt",
-        duration: "6",
-        nextRenewalDate: "test date",
-        date: "date here",
-        paymentDate: "date here",
-        boxItems: "box items here",
-        petDetails: "pet details here",
-        email: "matthew",
+        size: size,
+        nextBillingDate: nextBillingDate,
+        address: address,
+        name: name,
+        duration: duration,
+        nextRenewalDate: nextRenewalDate,
+        date: date,
+        paymentDate: "-",
+        boxItems: boxItems,
+        petDetails: petDetails,
+        email: email,
       }),
       headers: {
         "Content-Type": "application/json",
@@ -56,4 +69,40 @@ export const getSubscriptionPlans = async () => {
   );
   const data = await res.json();
   return data;
+};
+
+export const deactivateSubscription = async (contractId: string) => {
+  const res = await fetch(subEndpoint + "deactivateContract", {
+    method: "PUT",
+    body: JSON.stringify({ contractId }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  return res.body;
+};
+
+export const createNewBox = async (
+  contractId: string,
+  date: string,
+  number: string,
+  size: string,
+  paymentDate: string,
+  boxItems: string
+) => {
+  const res = await fetch(subEndpoint + "addBox", {
+    method: "POST",
+    body: JSON.stringify({
+      contractId: contractId,
+      date: date,
+      number: number,
+      size: size,
+      paymentDate: paymentDate,
+      items: boxItems,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  return res.body;
 };
