@@ -15,11 +15,21 @@ export type SubscriptionType = {
 };
 
 import { getSubscriptionPlans } from "@/APIs";
+import { authOptions } from "@/auth";
 import CreateSubscription from "@/components/CreateSubscription";
 import SubscriptionsTable from "@/components/SubscriptionsTable";
+import { getServerSession } from "next-auth";
+import Link from "next/link";
+import { redirect } from "next/navigation";
 
 export default async function page() {
   const res = await getSubscriptionPlans();
+
+  const session = await getServerSession(authOptions);
+
+  if (!session) {
+    redirect("/api/auth/signin");
+  }
 
   // Count duplicates for each contractId
   const duplicateCounts = res.results.reduce(
@@ -56,6 +66,9 @@ export default async function page() {
   );
   return (
     <div className="flex flex-col w-screen px-8 max-w-[1600px]">
+      <Link href="/" className="text-blue-400">
+        Back to Home
+      </Link>
       <h1 className="text-4xl font-bold">Subscriptions</h1>
       <CreateSubscription />
       <SubscriptionsTable uniqueResults={uniqueResults} />
