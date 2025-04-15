@@ -22,7 +22,9 @@ export default async function page() {
       return {
         ...restock,
         ...product,
-        link: "https://omakatsepets.com/shop/" + product.product.id,
+        link:
+          "https://omakatsepets.com/shop/" +
+          product.product.id.split("/").pop(),
       };
     })
   );
