@@ -2,7 +2,7 @@
 
 const endpoint = process.env.REVIEW_WORKER_ENDPOINT || "";
 const subEndpoint = process.env.SUBSCRIPTION_WORKER_ENDPOINT || "";
-
+const restockEndpoint = process.env.RESTOCK_WORKER_ENDPOINT || "";
 export const getReviews = async () => {
   const res = await fetch(endpoint);
   const data = await res.json();
@@ -35,8 +35,7 @@ export const createSubscription = async (
   email: string
 ) => {
   try {
-
-    console.log(boxItems)
+    console.log(boxItems);
     const res = await fetch(subEndpoint, {
       method: "POST",
       body: JSON.stringify({
@@ -100,6 +99,32 @@ export const createNewBox = async (
       paymentDate: paymentDate,
       items: boxItems,
     }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  return res.body;
+};
+
+export const getRestocks = async () => {
+  const res = await fetch(restockEndpoint);
+  const data = await res.json();
+  return data;
+};
+
+export const notifyRestock = async (
+  variantId: string,
+  link: string,
+  productName: string,
+  image: string
+) => {
+  console.log(
+    { variantId, link, productName, image },
+    restockEndpoint + "inform"
+  );
+  const res = await fetch(restockEndpoint + "inform", {
+    method: "POST",
+    body: JSON.stringify({ variantId, link, productName, image }),
     headers: {
       "Content-Type": "application/json",
     },

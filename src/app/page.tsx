@@ -33,6 +33,9 @@ export default async function Home() {
         <Link href="/reviews" className="bg-blue-400 p-8 rounded-md">
           Reviews
         </Link>
+        <Link href="/restocks" className="bg-blue-400 p-8 rounded-md">
+          Restocks
+        </Link>
       </div>
     </div>
   );
