@@ -13,7 +13,7 @@ export const approveReview = async (
   id: string,
   status: "APPROVED" | "REJECTED"
 ) => {
-  await fetch("https://omakatse-review-handler.matthew-3c3.workers.dev/", {
+  await fetch(endpoint, {
     method: "PUT",
     body: JSON.stringify({ id, status }),
     headers: {
@@ -63,9 +63,7 @@ export const createSubscription = async (
 };
 
 export const getSubscriptionPlans = async () => {
-  const res = await fetch(
-    `https://omakatse-subscriptions.matthew-3c3.workers.dev/subscription`
-  );
+  const res = await fetch(subEndpoint + "subscription");
   const data = await res.json();
   return data;
 };
