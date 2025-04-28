@@ -65,7 +65,7 @@ export default async function page() {
     []
   );
   return (
-    <div className="flex flex-col w-screen px-8 max-w-[1600px]">
+    <div className="flex flex-col w-screen px-8 max-w-7xl">
       <Link href="/" className="text-blue-400">
         Back to Home
       </Link>
