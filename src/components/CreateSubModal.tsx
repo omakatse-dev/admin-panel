@@ -18,19 +18,21 @@ export default function CreateSubModal({
 
   const createSubHandler = async () => {
     const date = new Date().toISOString();
-    await createSubscription(
-      size,
-      nextBillingDate,
-      address,
-      name,
-      duration,
-      nextRenewalDate,
-      date,
-      boxItems,
-      petDetails,
-      email
-    );
-    setShowCreateModal(false);
+    if (boxItems && petDetails) {
+      await createSubscription(
+        size,
+        nextBillingDate,
+        address,
+        name,
+        duration,
+        nextRenewalDate,
+        date,
+        JSON.parse(boxItems),
+        JSON.parse(petDetails),
+        email
+      );
+      setShowCreateModal(false);
+    }
   };
 
   return (

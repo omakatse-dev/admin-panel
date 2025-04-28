@@ -173,6 +173,7 @@ export default function SubscriptionsTable({
         header: "Items",
         cell: ({ row }) => {
           const items = JSON.parse(row.original.items);
+          console.log("items", items);
           return (
             <div className="break-words whitespace-normal">
               {items.map((item: { variantId: string; quantity: string }) => (

@@ -87,9 +87,6 @@ export const createSubscription = async (
         },
       }),
     });
-
-    // console.log("res", res);
-    return res.body;
   } catch (error) {
     console.error(error);
   }

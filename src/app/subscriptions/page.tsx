@@ -24,6 +24,7 @@ import { redirect } from "next/navigation";
 
 export default async function page() {
   const res = await getSubscriptionPlans();
+  // console.log("here", res)
 
   const session = await getServerSession(authOptions);
 
@@ -64,6 +65,7 @@ export default async function page() {
     },
     []
   );
+  // console.log("uniqueResults", uniqueResults);
   return (
     <div className="flex flex-col w-screen px-8 max-w-7xl">
       <Link href="/" className="text-blue-400">
