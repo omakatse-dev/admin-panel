@@ -113,21 +113,16 @@ export const deactivateSubscription = async (contractId: string) => {
 };
 
 export const createNewBox = async (
-  contractId: string,
-  date: string,
-  number: string,
-  size: string,
-  paymentDate: string,
-  boxItems: string
+  contractIds: string[],
+  boxItems: {
+    variantId: string;
+    quantity: number;
+  }[]
 ) => {
-  const res = await fetch(subEndpoint + "addBox", {
+  const res = await fetch(subEndpoint + "addBoxes", {
     method: "POST",
     body: JSON.stringify({
-      contractId: contractId,
-      date: date,
-      number: number,
-      size: size,
-      paymentDate: paymentDate,
+      contractIds: contractIds,
       items: boxItems,
     }),
     headers: {

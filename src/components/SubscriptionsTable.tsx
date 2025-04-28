@@ -8,11 +8,9 @@ import PetDetailsModal from "./PetDetailsModal";
 import {
   useReactTable,
   getCoreRowModel,
-  getSortedRowModel,
   getFilteredRowModel,
   ColumnDef,
   flexRender,
-  SortingState,
   ColumnFiltersState,
 } from "@tanstack/react-table";
 
@@ -25,8 +23,8 @@ export default function SubscriptionsTable({
   const [showPetDetailsModal, setShowPetDetailsModal] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [selectedPetDetails, setSelectedPetDetails] = useState("");
-  const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
 
   const handleSelectContract = (index: number) => {
     setSelectedIndex(index);
@@ -36,6 +34,24 @@ export default function SubscriptionsTable({
   const handleShowPetDetails = (petDetails: string) => {
     setSelectedPetDetails(petDetails);
     setShowPetDetailsModal(true);
+  };
+
+  const handleRowSelect = (contractId: string) => {
+    setSelectedRows((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(contractId)) {
+        newSet.delete(contractId);
+      } else {
+        newSet.add(contractId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleBulkCreateBox = () => {
+    if (selectedRows.size > 0) {
+      setShowNewBoxModal(true);
+    }
   };
 
   const hasAllergies = (petDetails: string) => {
@@ -52,6 +68,37 @@ export default function SubscriptionsTable({
 
   const columns = useMemo<ColumnDef<SubscriptionType>[]>(
     () => [
+      {
+        id: "select",
+        header: () => (
+          <div className="flex items-center justify-center">
+            <input
+              type="checkbox"
+              checked={selectedRows.size === uniqueResults.length}
+              onChange={() => {
+                if (selectedRows.size === uniqueResults.length) {
+                  setSelectedRows(new Set());
+                } else {
+                  setSelectedRows(
+                    new Set(uniqueResults.map((r) => r.contractId))
+                  );
+                }
+              }}
+              className="rounded border-gray-400 text-blue-500 focus:ring-blue-500"
+            />
+          </div>
+        ),
+        cell: ({ row }) => (
+          <div className="flex items-center justify-center">
+            <input
+              type="checkbox"
+              checked={selectedRows.has(row.original.contractId)}
+              onChange={() => handleRowSelect(row.original.contractId)}
+              className="rounded border-gray-400 text-blue-500 focus:ring-blue-500"
+            />
+          </div>
+        ),
+      },
       {
         accessorKey: "name",
         header: "Name",
@@ -103,7 +150,13 @@ export default function SubscriptionsTable({
         cell: ({ row }) => {
           const hasPetAllergies = hasAllergies(row.original.pets);
           return (
-            <div className="break-words whitespace-normal text-blue-400 hover:text-blue-300 flex items-center gap-2">
+            <div
+              className="break-words whitespace-normal text-blue-400 hover:text-blue-300 flex items-center gap-2 cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleShowPetDetails(row.original.pets);
+              }}
+            >
               Click to view details
               {hasPetAllergies && (
                 <span
@@ -180,20 +233,17 @@ export default function SubscriptionsTable({
         ),
       },
     ],
-    []
+    [selectedRows, uniqueResults]
   );
 
   const table = useReactTable({
     data: uniqueResults,
     columns,
     state: {
-      sorting,
       columnFilters,
     },
-    onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
   });
 
@@ -201,7 +251,7 @@ export default function SubscriptionsTable({
     <div className="flex flex-col gap-4 mt-12 w-full">
       <div className="overflow-x-auto">
         <div className="min-w-[1200px]">
-          <div className="mb-4 flex gap-4">
+          <div className="mb-4 flex gap-4 items-center">
             <input
               placeholder="Filter by email..."
               value={
@@ -231,25 +281,25 @@ export default function SubscriptionsTable({
                 Inactive
               </option>
             </select>
+            {selectedRows.size > 0 && (
+              <button
+                onClick={handleBulkCreateBox}
+                className="ml-auto border border-blue-500 text-blue-500 rounded-md px-3 py-1 hover:bg-blue-500/10 transition-colors"
+              >
+                Create Box for {selectedRows.size} Selected
+              </button>
+            )}
           </div>
           <table className="w-full">
             <thead>
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id} className="border-b bg-gray-800">
                   {headerGroup.headers.map((header) => (
-                    <th
-                      key={header.id}
-                      className="p-4 text-left font-bold"
-                      onClick={header.column.getToggleSortingHandler()}
-                    >
+                    <th key={header.id} className="p-4 text-left font-bold">
                       {flexRender(
                         header.column.columnDef.header,
                         header.getContext()
                       )}
-                      {{
-                        asc: " 🔼",
-                        desc: " 🔽",
-                      }[header.column.getIsSorted() as string] ?? null}
                     </th>
                   ))}
                 </tr>
@@ -257,11 +307,7 @@ export default function SubscriptionsTable({
             </thead>
             <tbody>
               {table.getRowModel().rows.map((row) => (
-                <tr
-                  key={row.id}
-                  className="hover:bg-gray-800 cursor-pointer"
-                  onClick={() => handleShowPetDetails(row.original.pets)}
-                >
+                <tr key={row.id} className="hover:bg-gray-800">
                   {row.getVisibleCells().map((cell) => (
                     <td key={cell.id} className="p-4">
                       {flexRender(
@@ -279,9 +325,11 @@ export default function SubscriptionsTable({
       {showNewBoxModal && (
         <NewBoxModal
           setShowNewBoxModal={setShowNewBoxModal}
-          contractId={uniqueResults[selectedIndex].contractId}
-          number={(uniqueResults[selectedIndex].duplicateCount + 1).toString()}
-          size={uniqueResults[selectedIndex].size}
+          contractId={
+            selectedRows.size > 0
+              ? Array.from(selectedRows)
+              : [uniqueResults[selectedIndex].contractId]
+          }
         />
       )}
       {showPetDetailsModal && (
