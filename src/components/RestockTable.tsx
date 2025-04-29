@@ -1,6 +1,7 @@
 "use client";
 
 import { notifyRestock } from "@/APIs";
+import { useState } from "react";
 
 export type RestockItemType = {
   variantId: string;
@@ -19,25 +20,39 @@ export type ProductType = {
   };
 };
 
+function Spinner() {
+  return (
+    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+  );
+}
+
 export default function RestockTable({
   restocks,
 }: {
   restocks: RestockItemType[];
 }) {
-  const notifyHandler = async () => {
+  const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>(
+    {}
+  );
+
+  const notifyHandler = async (restock: RestockItemType) => {
+    setLoadingStates((prev) => ({ ...prev, [restock.variantId]: true }));
     try {
       const res = await notifyRestock(
-        restocks[0].variantId,
-        restocks[0].link,
-        restocks[0].product.title,
-        restocks[0].product.images.nodes[0].url
+        restock.variantId,
+        restock.link,
+        restock.product.title,
+        restock.product.images.nodes[0].url
       );
       console.log("success", res);
       window.location.reload();
     } catch (error) {
       alert("Error sending restock alert" + error);
+    } finally {
+      setLoadingStates((prev) => ({ ...prev, [restock.variantId]: false }));
     }
   };
+
   return (
     <div>
       <div className="grid grid-cols-5 border-b font-bold mt-12 gap-6">
@@ -46,28 +61,48 @@ export default function RestockTable({
         <div>Requests</div>
         <div>Action</div>
       </div>
-      {restocks.map((restock: RestockItemType) => (
-        <div
-          key={restock.variantId}
-          className="grid grid-cols-5 items-center py-2 gap-6"
-        >
-          <a
-            href={restock.link}
-            target="_blank"
-            className="underline text-blue-600"
+      {restocks.map((restock: RestockItemType) => {
+        const isLoading = loadingStates[restock.variantId] || false;
+
+        return (
+          <div
+            key={restock.variantId}
+            className="grid grid-cols-5 items-center py-2 gap-6"
           >
-            {restock.variantId}
-          </a>
-          <div>{restock.product?.title}</div>
-          <div>{JSON.parse(restock.emails).length}</div>
-          <button
-            className="bg-blue-400 rounded-lg py-3 cursor-pointer"
-            onClick={notifyHandler}
-          >
-            Send Restock Alert
-          </button>
-        </div>
-      ))}
+            <a
+              href={restock.link}
+              target="_blank"
+              className="underline text-blue-600"
+            >
+              {restock.variantId}
+            </a>
+            <div>{restock.product?.title}</div>
+            <div>
+              {JSON.parse(restock.emails).map((email: string) => (
+                <div key={email}>{email}</div>
+              ))}
+            </div>
+            <button
+              className={`bg-blue-400 rounded-lg py-3 px-4 cursor-pointer flex items-center justify-center gap-2 min-w-[160px] ${
+                isLoading
+                  ? "opacity-70 cursor-not-allowed"
+                  : "hover:bg-blue-500"
+              }`}
+              onClick={() => notifyHandler(restock)}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Spinner />
+                  <span>Sending...</span>
+                </>
+              ) : (
+                "Send Restock Alert"
+              )}
+            </button>
+          </div>
+        );
+      })}
     </div>
   );
 }

@@ -1,5 +1,13 @@
+"use client";
+
 import { createSubscription } from "@/APIs";
 import { useState } from "react";
+
+function Spinner() {
+  return (
+    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+  );
+}
 
 export default function CreateSubModal({
   setShowCreateModal,
@@ -13,8 +21,10 @@ export default function CreateSubModal({
   const [boxDetails, setBoxDetails] = useState("");
   const [email, setEmail] = useState("");
   const [orderDate, setOrderDate] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const createSubHandler = async () => {
+    setIsLoading(true);
     const date = new Date().toISOString();
     if (boxItems && boxDetails) {
       try {
@@ -44,6 +54,8 @@ export default function CreateSubModal({
         setShowCreateModal(false);
       } catch (error) {
         console.error("Error parsing JSON or calculating dates:", error);
+      } finally {
+        setIsLoading(false);
       }
     }
   };
@@ -164,18 +176,31 @@ export default function CreateSubModal({
           <div className="flex justify-end space-x-4 pt-4">
             <button
               type="button"
-              className="px-4 py-2 border border-gray-600 rounded hover:bg-gray-700"
+              className={`px-4 py-2 border border-gray-600 rounded hover:bg-gray-700 ${
+                isLoading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
               onClick={() => {
                 setShowCreateModal(false);
               }}
+              disabled={isLoading}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-700"
+              className={`px-4 py-2 bg-blue-600 rounded hover:bg-blue-700 min-w-[160px] flex items-center justify-center gap-2 ${
+                isLoading ? "opacity-70 cursor-not-allowed" : ""
+              }`}
+              disabled={isLoading}
             >
-              Create Subscription
+              {isLoading ? (
+                <>
+                  <Spinner />
+                  <span>Creating...</span>
+                </>
+              ) : (
+                "Create Subscription"
+              )}
             </button>
           </div>
         </form>
