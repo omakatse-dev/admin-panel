@@ -12,6 +12,8 @@ import {
   ColumnDef,
   flexRender,
   ColumnFiltersState,
+  getSortedRowModel,
+  SortingState,
 } from "@tanstack/react-table";
 
 export default function SubscriptionsTable({
@@ -24,6 +26,7 @@ export default function SubscriptionsTable({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [selectedPetDetails, setSelectedPetDetails] = useState("");
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [sorting, setSorting] = useState<SortingState>([]);
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
 
   const handleSelectContract = (index: number) => {
@@ -127,15 +130,6 @@ export default function SubscriptionsTable({
         ),
       },
       {
-        accessorKey: "boxProgress",
-        header: "Curr Box",
-        cell: ({ row }) => (
-          <div className="break-words whitespace-normal">
-            {row.original.duplicateCount} / {row.original.planDuration}
-          </div>
-        ),
-      },
-      {
         accessorKey: "size",
         header: "Box Size",
         cell: ({ row }) => (
@@ -143,6 +137,20 @@ export default function SubscriptionsTable({
             {row.original.size}
           </div>
         ),
+      },
+      {
+        accessorKey: "nextBillingDate",
+        header: "Next Billing Date",
+        cell: ({ row }) => (
+          <div className="break-words whitespace-normal">
+            {new Date(row.original.nextBillingDate).toLocaleDateString()}
+          </div>
+        ),
+        sortingFn: (rowA, rowB) => {
+          const dateA = new Date(rowA.original.nextBillingDate).getTime();
+          const dateB = new Date(rowB.original.nextBillingDate).getTime();
+          return dateA - dateB;
+        },
       },
       {
         accessorKey: "pets",
@@ -242,16 +250,19 @@ export default function SubscriptionsTable({
     columns,
     state: {
       columnFilters,
+      sorting,
     },
     onColumnFiltersChange: setColumnFilters,
+    onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
   });
 
   return (
     <div className="flex flex-col gap-4 mt-12 w-full">
-      <div className="overflow-x-auto">
-        <div className="min-w-[1200px]">
+      <div className="w-full">
+        <div className="w-full">
           <div className="mb-4 flex gap-4 items-center">
             <input
               placeholder="Filter by email..."
@@ -297,9 +308,25 @@ export default function SubscriptionsTable({
                 <tr key={headerGroup.id} className="border-b bg-gray-800">
                   {headerGroup.headers.map((header) => (
                     <th key={header.id} className="p-4 text-left font-bold">
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
+                      {header.column.getCanSort() ? (
+                        <div
+                          className="cursor-pointer select-none"
+                          onClick={header.column.getToggleSortingHandler()}
+                        >
+                          {flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                          {{
+                            asc: " 🔼",
+                            desc: " 🔽",
+                          }[header.column.getIsSorted() as string] ?? null}
+                        </div>
+                      ) : (
+                        flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )
                       )}
                     </th>
                   ))}
