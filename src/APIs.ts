@@ -36,6 +36,19 @@ export const createSubscription = async (
   email: string
 ) => {
   try {
+    console.log({
+      size: size,
+      nextBillingDate: nextBillingDate,
+      address: address,
+      name: name,
+      duration: duration,
+      nextRenewalDate: nextRenewalDate,
+      date: date,
+      paymentDate: "-",
+      boxItems: boxItems,
+      petDetails: petDetails,
+      email: email,
+    });
     const res = await fetch(subEndpoint, {
       method: "POST",
       body: JSON.stringify({
@@ -55,8 +68,8 @@ export const createSubscription = async (
         "Content-Type": "application/json",
       },
     });
+    console.log(res);
     const data = await res.json();
-    console.log("res", data.contractId);
 
     const timeDelta = parseInt(duration) * 30 * 24 * 60 * 60 * 1000;
     await fetch(schedulerEndpoint, {

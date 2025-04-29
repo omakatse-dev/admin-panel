@@ -7,31 +7,44 @@ export default function CreateSubModal({
   setShowCreateModal: (show: boolean) => void;
 }) {
   const [size, setSize] = useState("");
-  const [nextBillingDate, setNextBillingDate] = useState("");
   const [address, setAddress] = useState("");
   const [name, setName] = useState("");
-  const [duration, setDuration] = useState("");
-  const [nextRenewalDate, setNextRenewalDate] = useState("");
   const [boxItems, setBoxItems] = useState("");
-  const [petDetails, setPetDetails] = useState("");
+  const [boxDetails, setBoxDetails] = useState("");
   const [email, setEmail] = useState("");
+  const [orderDate, setOrderDate] = useState("");
 
   const createSubHandler = async () => {
     const date = new Date().toISOString();
-    if (boxItems && petDetails) {
-      await createSubscription(
-        size,
-        nextBillingDate,
-        address,
-        name,
-        duration,
-        nextRenewalDate,
-        date,
-        JSON.parse(boxItems),
-        JSON.parse(petDetails),
-        email
-      );
-      setShowCreateModal(false);
+    if (boxItems && boxDetails) {
+      try {
+        const parsedBoxDetails = JSON.parse(boxDetails);
+        const duration = parseInt(parsedBoxDetails.duration.split(" ")[0]) || 1; // Default to 1 month if duration not specified
+
+        // Calculate dates
+        const orderDateObj = new Date(orderDate);
+        const nextBillingDate = new Date(orderDateObj);
+        nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
+
+        const nextRenewalDate = new Date(orderDateObj);
+        nextRenewalDate.setMonth(nextRenewalDate.getMonth() + duration);
+
+        await createSubscription(
+          size,
+          nextBillingDate.toISOString(),
+          address,
+          name,
+          duration.toString(),
+          nextRenewalDate.toISOString(),
+          date,
+          JSON.parse(boxItems),
+          JSON.parse(boxDetails).pets,
+          email
+        );
+        setShowCreateModal(false);
+      } catch (error) {
+        console.error("Error parsing JSON or calculating dates:", error);
+      }
     }
   };
 
@@ -89,72 +102,35 @@ export default function CreateSubModal({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label htmlFor="size" className="block text-sm font-medium">
-                Box Size
-              </label>
-              <select
-                id="size"
-                value={size}
-                onChange={(e) => setSize(e.target.value)}
-                className="w-full p-2 rounded bg-gray-700 border border-gray-600"
-                required
-              >
-                <option value="">Select Size</option>
-                <option value="SMALL">Small</option>
-                <option value="LARGE">Large</option>
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="duration" className="block text-sm font-medium">
-                Duration (months)
-              </label>
-              <input
-                type="number"
-                id="duration"
-                value={duration}
-                onChange={(e) => setDuration(e.target.value)}
-                className="w-full p-2 rounded bg-gray-700 border border-gray-600"
-                required
-                min="1"
-              />
-            </div>
+          <div className="space-y-2">
+            <label htmlFor="size" className="block text-sm font-medium">
+              Box Size
+            </label>
+            <select
+              id="size"
+              value={size}
+              onChange={(e) => setSize(e.target.value)}
+              className="w-full p-2 rounded bg-gray-700 border border-gray-600"
+              required
+            >
+              <option value="">Select Size</option>
+              <option value="SMALL">Small</option>
+              <option value="LARGE">Large</option>
+            </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label
-                htmlFor="nextBillingDate"
-                className="block text-sm font-medium"
-              >
-                Next Billing Date
-              </label>
-              <input
-                type="date"
-                id="nextBillingDate"
-                value={nextBillingDate}
-                onChange={(e) => setNextBillingDate(e.target.value)}
-                className="w-full p-2 rounded bg-gray-700 border border-gray-600"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label
-                htmlFor="nextRenewalDate"
-                className="block text-sm font-medium"
-              >
-                Next Renewal Date
-              </label>
-              <input
-                type="date"
-                id="nextRenewalDate"
-                value={nextRenewalDate}
-                onChange={(e) => setNextRenewalDate(e.target.value)}
-                className="w-full p-2 rounded bg-gray-700 border border-gray-600"
-                required
-              />
-            </div>
+          <div className="space-y-2">
+            <label htmlFor="orderDate" className="block text-sm font-medium">
+              Order Date
+            </label>
+            <input
+              type="date"
+              id="orderDate"
+              value={orderDate}
+              onChange={(e) => setOrderDate(e.target.value)}
+              className="w-full p-2 rounded bg-gray-700 border border-gray-600"
+              required
+            />
           </div>
 
           <div className="space-y-2">
@@ -172,14 +148,15 @@ export default function CreateSubModal({
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="petDetails" className="block text-sm font-medium">
-              Pet Details (Copy from Order notes)
+            <label htmlFor="boxDetails" className="block text-sm font-medium">
+              Box Details (JSON format)
             </label>
             <textarea
-              id="petDetails"
-              value={petDetails}
-              onChange={(e) => setPetDetails(e.target.value)}
+              id="boxDetails"
+              value={boxDetails}
+              onChange={(e) => setBoxDetails(e.target.value)}
               className="w-full p-2 rounded bg-gray-700 border border-gray-600"
+              placeholder='{"duration": 12, "otherDetails": "..."}'
               required
             />
           </div>
