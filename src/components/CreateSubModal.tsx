@@ -147,7 +147,8 @@ export default function CreateSubModal({
 
           <div className="space-y-2">
             <label htmlFor="boxItems" className="block text-sm font-medium">
-              Box Items (JSON format)
+              Box Items (JSON format) {" "} 
+              {`[{"variantId": "item1", "quantity": "1"}]`}
             </label>
             <textarea
               id="boxItems"

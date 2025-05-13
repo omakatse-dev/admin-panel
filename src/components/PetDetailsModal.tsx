@@ -17,6 +17,7 @@ type PetDetail = {
   treatFrequency: {
     preferences: string[];
     frequency: string;
+    comments?: string[];
   };
 };
 
@@ -34,10 +35,13 @@ export default function PetDetailsModal({
   } catch {
     parsedDetails = petDetails;
   }
+  console.log(parsedDetails);
 
   const renderPetDetails = (details: PetDetail) => (
     <div key={details.name} className="mb-6 last:mb-0">
-      <h3 className="text-xl font-semibold mb-3 text-blue-400">{details.name}</h3>
+      <h3 className="text-xl font-semibold mb-3 text-blue-400">
+        {details.name}
+      </h3>
       <div className="grid grid-cols-2 gap-4">
         <div>
           <span className="text-gray-400">Type:</span>
@@ -106,17 +110,28 @@ export default function PetDetailsModal({
               </span>
             ))}
           </div>
+          {details.treatFrequency.comments &&
+            details.treatFrequency.comments.length > 0 && (
+              <div className="mt-2">
+                <span className="text-gray-400">Comments:</span>
+                <div className="ml-2 mt-1 flex flex-wrap gap-2">
+                  <span className="bg-yellow-500/20 text-yellow-600 px-2 py-1 rounded-full text-sm">
+                    {details.treatFrequency.comments}
+                  </span>
+                </div>
+              </div>
+            )}
         </div>
       </div>
     </div>
   );
 
   return (
-    <div 
+    <div
       className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
       onClick={() => setShowModal(false)}
     >
-      <div 
+      <div
         className="bg-gray-800 p-8 rounded-lg w-1/3 max-h-[80vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
@@ -139,4 +154,4 @@ export default function PetDetailsModal({
       </div>
     </div>
   );
-} 
+}

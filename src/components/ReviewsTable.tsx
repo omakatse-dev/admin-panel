@@ -11,11 +11,67 @@ import {
   flexRender,
   ColumnFiltersState,
 } from "@tanstack/react-table";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 
 export default function ReviewsTable({ reviews }: { reviews: Review[] }) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const selectAllRef = useRef<HTMLInputElement>(null);
+
+  const handleSelect = (id: string, checked: boolean) => {
+    setSelectedIds(prev =>
+      checked ? [...prev, id] : prev.filter(selectedId => selectedId !== id)
+    );
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(table.getRowModel().rows.map(row => row.original.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const approveSelectedHandler = async () => {
+    setLoadingStates(prev =>
+      selectedIds.reduce((acc, id) => ({ ...acc, [id]: true }), prev)
+    );
+    try {
+      await Promise.all(
+        selectedIds.map(id => approveReview(id, "APPROVED"))
+      );
+      alert("Selected reviews approved. Refresh page to verify changes.");
+      setSelectedIds([]);
+    } catch (error) {
+      console.error(error);
+      alert("Failed to approve selected reviews");
+    } finally {
+      setLoadingStates(prev =>
+        selectedIds.reduce((acc, id) => ({ ...acc, [id]: false }), prev)
+      );
+    }
+  };
+
+  const rejectSelectedHandler = async () => {
+    setLoadingStates(prev =>
+      selectedIds.reduce((acc, id) => ({ ...acc, [id]: true }), prev)
+    );
+    try {
+      await Promise.all(
+        selectedIds.map(id => approveReview(id, "REJECTED"))
+      );
+      alert("Selected reviews rejected. Refresh page to verify changes.");
+      setSelectedIds([]);
+    } catch (error) {
+      console.error(error);
+      alert("Failed to reject selected reviews");
+    } finally {
+      setLoadingStates(prev =>
+        selectedIds.reduce((acc, id) => ({ ...acc, [id]: false }), prev)
+      );
+    }
+  };
 
   const updateStatusHandler = async (
     id: string,
@@ -35,6 +91,34 @@ export default function ReviewsTable({ reviews }: { reviews: Review[] }) {
 
   const columns = useMemo<ColumnDef<Review>[]>(
     () => [
+      {
+        id: "select",
+        header: ({ table }) => {
+          const allRows = table.getRowModel().rows;
+          const allSelected = allRows.length > 0 && selectedIds.length === allRows.length;
+          const someSelected = selectedIds.length > 0 && selectedIds.length < allRows.length;
+          if (selectAllRef.current) {
+            selectAllRef.current.indeterminate = someSelected;
+          }
+          return (
+            <input
+              type="checkbox"
+              ref={selectAllRef}
+              checked={allSelected}
+              onChange={e => handleSelectAll(e.target.checked)}
+            />
+          );
+        },
+        cell: ({ row }) => (
+          <input
+            type="checkbox"
+            checked={selectedIds.includes(row.original.id)}
+            onChange={e => handleSelect(row.original.id, e.target.checked)}
+            disabled={row.original.status !== "PENDING"}
+          />
+        ),
+        size: 32,
+      },
       {
         id: "product",
         accessorKey: "product",
@@ -132,7 +216,7 @@ export default function ReviewsTable({ reviews }: { reviews: Review[] }) {
         },
       },
     ],
-    [loadingStates]
+    [loadingStates, selectedIds]
   );
 
   const table = useReactTable({
@@ -159,7 +243,7 @@ export default function ReviewsTable({ reviews }: { reviews: Review[] }) {
       <h1 className="text-4xl font-bold">Approve / Reject Reviews</h1>
       
       <div className="mt-12">
-        <div className="mb-4">
+        <div className="mb-4 flex items-center gap-4">
           <select
             value={(columnFilters.find(f => f.id === 'status')?.value as string) ?? ""}
             onChange={(event) =>
@@ -189,6 +273,28 @@ export default function ReviewsTable({ reviews }: { reviews: Review[] }) {
               Rejected
             </option>
           </select>
+          <button
+            className="bg-green-600 text-white px-4 py-2 rounded-md disabled:opacity-50"
+            onClick={approveSelectedHandler}
+            disabled={
+              selectedIds.length === 0 ||
+              selectedIds.some(id => loadingStates[id]) ||
+              !table.getRowModel().rows.some(row => selectedIds.includes(row.original.id) && row.original.status === "PENDING")
+            }
+          >
+            {selectedIds.some(id => loadingStates[id]) ? "Approving..." : `Approve Selected (${selectedIds.length})`}
+          </button>
+          <button
+            className="bg-red-600 text-white px-4 py-2 rounded-md disabled:opacity-50"
+            onClick={rejectSelectedHandler}
+            disabled={
+              selectedIds.length === 0 ||
+              selectedIds.some(id => loadingStates[id]) ||
+              !table.getRowModel().rows.some(row => selectedIds.includes(row.original.id) && row.original.status === "PENDING")
+            }
+          >
+            {selectedIds.some(id => loadingStates[id]) ? "Rejecting..." : `Reject Selected (${selectedIds.length})`}
+          </button>
         </div>
 
         <div className="w-full overflow-x-auto">
