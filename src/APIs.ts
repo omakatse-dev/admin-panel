@@ -36,19 +36,6 @@ export const createSubscription = async (
   email: string
 ) => {
   try {
-    console.log({
-      size: size,
-      nextBillingDate: nextBillingDate,
-      address: address,
-      name: name,
-      duration: duration,
-      nextRenewalDate: nextRenewalDate,
-      date: date,
-      paymentDate: "-",
-      boxItems: boxItems,
-      petDetails: petDetails,
-      email: email,
-    });
     const res = await fetch(subEndpoint, {
       method: "POST",
       body: JSON.stringify({
@@ -60,9 +47,9 @@ export const createSubscription = async (
         nextRenewalDate: nextRenewalDate,
         date: date,
         paymentDate: "-",
-        boxItems: boxItems,
         petDetails: petDetails,
         email: email,
+        ...(boxItems ? { boxItems } : {}),
       }),
       headers: {
         "Content-Type": "application/json",
@@ -129,6 +116,10 @@ export const createNewBox = async (
     quantity: number;
   }[]
 ) => {
+  console.log("here",JSON.stringify({
+    contractIds: contractIds,
+    items: boxItems,
+  }))
   const res = await fetch(subEndpoint + "addBoxes", {
     method: "POST",
     body: JSON.stringify({

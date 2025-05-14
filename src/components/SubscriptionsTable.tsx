@@ -28,6 +28,7 @@ export default function SubscriptionsTable({
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
+  console.log("here", uniqueResults)
 
   const handleSelectContract = (index: number) => {
     setSelectedIndex(index);
@@ -134,7 +135,7 @@ export default function SubscriptionsTable({
         header: "Box Size",
         cell: ({ row }) => (
           <div className="break-words whitespace-normal">
-            {row.original.size}
+            {row.original.contractSize}
           </div>
         ),
       },
@@ -184,7 +185,7 @@ export default function SubscriptionsTable({
           console.log("items", items);
           return (
             <div className="break-words whitespace-normal">
-              {items.map((item: { variantId: string; quantity: string }) => (
+              {items?.map((item: { variantId: string; quantity: string }) => (
                 <div key={item.variantId} className="text-sm">
                   {item.variantId} x {item.quantity}
                 </div>

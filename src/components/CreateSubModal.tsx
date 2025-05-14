@@ -26,7 +26,7 @@ export default function CreateSubModal({
   const createSubHandler = async () => {
     setIsLoading(true);
     const date = new Date().toISOString();
-    if (boxItems && boxDetails) {
+    if (boxDetails) {
       try {
         const parsedBoxDetails = JSON.parse(boxDetails);
         const duration = parseInt(parsedBoxDetails.duration.split(" ")[0]) || 1; // Default to 1 month if duration not specified
@@ -47,7 +47,7 @@ export default function CreateSubModal({
           duration.toString(),
           nextRenewalDate.toISOString(),
           date,
-          JSON.parse(boxItems),
+          boxItems ? JSON.parse(boxItems) : undefined,
           JSON.parse(boxDetails).pets,
           email
         );
@@ -144,22 +144,6 @@ export default function CreateSubModal({
               required
             />
           </div>
-
-          <div className="space-y-2">
-            <label htmlFor="boxItems" className="block text-sm font-medium">
-              Box Items (JSON format) {" "} 
-              {`[{"variantId": "item1", "quantity": "1"}]`}
-            </label>
-            <textarea
-              id="boxItems"
-              value={boxItems}
-              onChange={(e) => setBoxItems(e.target.value)}
-              className="w-full p-2 rounded bg-gray-700 border border-gray-600"
-              placeholder='[{"variantId": "item1", "quantity": "1"}]'
-              required
-            />
-          </div>
-
           <div className="space-y-2">
             <label htmlFor="boxDetails" className="block text-sm font-medium">
               Box Details (JSON format)
@@ -173,6 +157,22 @@ export default function CreateSubModal({
               required
             />
           </div>
+
+          <div className="space-y-2">
+            <label htmlFor="boxItems" className="block text-sm font-medium">
+              Box Items (JSON format, optional) {" "} 
+              {`[{"variantId": "item1", "quantity": "1"}]`}
+            </label>
+            <textarea
+              id="boxItems"
+              value={boxItems}
+              onChange={(e) => setBoxItems(e.target.value)}
+              className="w-full p-2 rounded bg-gray-700 border border-gray-600"
+              placeholder='[{"variantId": "item1", "quantity": "1"}]'
+            />
+          </div>
+
+          
 
           <div className="flex justify-end space-x-4 pt-4">
             <button

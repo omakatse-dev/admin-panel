@@ -8,7 +8,7 @@ export type SubscriptionType = {
   nextBillingDate: string;
   nextRenewalDate: string;
   items: string;
-  size: string;
+  contractSize: string;
   pets: string;
   status: string;
   number: string;
