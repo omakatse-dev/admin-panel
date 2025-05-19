@@ -39,7 +39,7 @@ export default function NewBoxModal({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">
-              Box Items (JSON)
+              Box Items (JSON) {`([{"variantId": "item1", "quantity": "1"}])`}
             </label>
             <textarea
               value={boxItems}
